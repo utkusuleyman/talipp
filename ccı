@@ -1,0 +1,20 @@
+# Gerekli kütüphanelerin yüklenmesi
+!pip install pandas-ta
+
+
+import pandas as pd
+import pandas_ta as ta
+import yfinance as yf
+
+# Hisse verilerini yfinance'dan çekelim (örneğin: AAPL)
+benchmarkdf = yf.download('AAPL', period='1y', interval='1d')
+
+# CCI hesaplama (örnek: CCI 14 period, 0.015 constant)
+benchmarkdf['CCI_14_0.015'] = ta.cci(benchmarkdf['High'], benchmarkdf['Low'], benchmarkdf['Close'], length=14, c=0.015)
+
+# Manuel sinyal üretimi
+benchmarkdf['CCI_BXBUY'] = (benchmarkdf['CCI_14_0.015'] > 150).astype(int)  # CCI 150'nin üzerine çıktığında AL sinyali
+benchmarkdf['CCI_BXSELL'] = (benchmarkdf['CCI_14_0.015'] < -150).astype(int)  # CCI -150'nin altına düştüğünde SAT sinyali
+
+# Üretilen sinyalleri görüntüleme
+print(benchmarkdf[['CCI_14_0.015', 'CCI_BXBUY', 'CCI_BXSELL']].tail())
